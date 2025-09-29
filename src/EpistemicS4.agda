@@ -234,8 +234,7 @@ module EpistemicS4
     → ([] , []) ⊢ (ƛ x ⇒ (let-box a ∣ u ≐ var x ⇒ var u)) ∶ ((⟦ a ⟧ A) ⊃ A) true
   knownFactsAreTrue = ⊃I knows-ctx/z true-ctx/z 
     (⟦⟧E knows-ctx/z (true-ctx/s true-ctx/z) (hyp knows-ctx/z (true-ctx/s true-ctx/z) (here refl)) 
-      (knows (knows-ctx/s knows-ctx/z) (true-ctx/s true-ctx/z) (here refl) 
-      (hyp (knows-ctx/s knows-ctx/z) (true-ctx/s (true-ctx/s true-ctx/z)) (here refl))))
+      (hyp* (knows-ctx/s knows-ctx/z) (true-ctx/s true-ctx/z) (here refl)))
 
   -- Positive introspection
   introspection : ∀ {A a x u}
@@ -245,5 +244,4 @@ module EpistemicS4
       (hyp knows-ctx/z (true-ctx/s true-ctx/z) (here refl)) 
       (⟦⟧I (knows-ctx/s knows-ctx/z) (true-ctx/s true-ctx/z) (k-ctx/s-keep k-ctx/z) 
         (⟦⟧I (knows-ctx/s knows-ctx/z) true-ctx/z (k-ctx/s-keep k-ctx/z) 
-        (knows (knows-ctx/s knows-ctx/z) true-ctx/z (here refl) 
-        (hyp (knows-ctx/s knows-ctx/z) (true-ctx/s true-ctx/z) (here refl)))))) 
+        (hyp* (knows-ctx/s knows-ctx/z) true-ctx/z (here refl))))) 

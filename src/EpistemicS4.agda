@@ -154,11 +154,11 @@ module EpistemicS4
       Hypothesis from knowledge: If we know something is true, then we can hypothesize
       it 
     -}
-    hyp* : ∀ {Γ Δ A a x}
+    hyp* : ∀ {Γ Δ A a x E}
       → KnowsContext Γ → TrueContext Δ
       → ((var x) ∶ (a knows A)) ∈ Γ
       -------------------------------
-      → (Γ , Δ) ⊢ (var x) ∶ A true
+      → (Γ , Δ) ⊢ E ∶ A true
 
     {- Implication -}
     -- Implication Introduction

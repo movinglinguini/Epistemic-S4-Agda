@@ -169,14 +169,14 @@ module EpistemicS4
 
     {- Implication -}
     -- Implication Introduction
-    impI : ∀ {Γ Δ A B E x}
+    ⊃I : ∀ {Γ Δ A B E x}
       → KnowsContext Γ → TrueContext Δ
       → (Γ , (var x) ∶ A true ∷ Δ) ⊢ E ∶ B true
       -------------------------------
       → (Γ , Δ) ⊢ (ƛ x ⇒ E) ∶ (A ⊃ B) true
 
     -- Implication Elimination
-    impE : ∀ {Γ Δ A B E1 E2}
+    ⊃E : ∀ {Γ Δ A B E1 E2}
       → KnowsContext Γ → TrueContext Δ
       → (Γ , Δ) ⊢ E1 ∶ (A ⊃ B) true
       → (Γ , Δ) ⊢ E2 ∶ A true
@@ -206,7 +206,7 @@ module EpistemicS4
     → ([] , []) ⊢ E2 ∶ A true
     -------------------------------
     → ([] , []) ⊢ (E1 ∙ E2) ∶ B true
-  modusPonens mpAtoB mpA = impE knows-ctx/z true-ctx/z mpAtoB mpA
+  modusPonens mpAtoB mpA = ⊃E knows-ctx/z true-ctx/z mpAtoB mpA
 
   necessitation : ∀ {A a E}
     → ([] , []) ⊢ E ∶ A true
@@ -218,21 +218,21 @@ module EpistemicS4
   distribution : ∀ {A B a x y u w}
     → ([] , []) ⊢ (ƛ x ⇒ (ƛ y ⇒ (let-box a ∣ u ≐ (var x) ⇒ (let-box a ∣ w ≐ (var y) ⇒ box a ((var u) ∙ (var w)))))) ∶ ((⟦ a ⟧ (A ⊃ B)) ⊃ (⟦ a ⟧ A ⊃ ⟦ a ⟧ B)) true
   distribution = 
-    impI knows-ctx/z true-ctx/z 
-      (impI knows-ctx/z (true-ctx/s true-ctx/z) 
+    ⊃I knows-ctx/z true-ctx/z 
+      (⊃I knows-ctx/z (true-ctx/s true-ctx/z) 
         (⟦⟧E knows-ctx/z (true-ctx/s (true-ctx/s true-ctx/z)) 
           (hyp knows-ctx/z (true-ctx/s (true-ctx/s true-ctx/z)) (there (here refl))) 
           (⟦⟧E (knows-ctx/s knows-ctx/z) (true-ctx/s (true-ctx/s true-ctx/z)) 
             (hyp (knows-ctx/s knows-ctx/z) (true-ctx/s (true-ctx/s true-ctx/z)) (here refl)) 
             (⟦⟧I (knows-ctx/s (knows-ctx/s knows-ctx/z)) (true-ctx/s (true-ctx/s true-ctx/z)) (k-ctx/s-keep (k-ctx/s-keep k-ctx/z)) 
-            (impE (knows-ctx/s (knows-ctx/s knows-ctx/z)) true-ctx/z 
+            (⊃E (knows-ctx/s (knows-ctx/s knows-ctx/z)) true-ctx/z 
               (hyp* (knows-ctx/s (knows-ctx/s knows-ctx/z)) true-ctx/z (there (here refl)))
               (hyp* (knows-ctx/s (knows-ctx/s knows-ctx/z)) true-ctx/z (here refl)))))))
 
   -- Known facts are true
   knownFactsAreTrue : ∀ {A a x u}
     → ([] , []) ⊢ (ƛ x ⇒ (let-box a ∣ u ≐ var x ⇒ var u)) ∶ ((⟦ a ⟧ A) ⊃ A) true
-  knownFactsAreTrue = impI knows-ctx/z true-ctx/z 
+  knownFactsAreTrue = ⊃I knows-ctx/z true-ctx/z 
     (⟦⟧E knows-ctx/z (true-ctx/s true-ctx/z) (hyp knows-ctx/z (true-ctx/s true-ctx/z) (here refl)) 
       (knows (knows-ctx/s knows-ctx/z) (true-ctx/s true-ctx/z) (here refl) 
       (hyp (knows-ctx/s knows-ctx/z) (true-ctx/s (true-ctx/s true-ctx/z)) (here refl))))
@@ -240,7 +240,7 @@ module EpistemicS4
   -- Positive introspection
   introspection : ∀ {A a x u}
     → ([] , []) ⊢ (ƛ x ⇒ (let-box a ∣ u ≐ (var x) ⇒ (box a (box a (var u))))) ∶ ((⟦ a ⟧ A) ⊃ ⟦ a ⟧ (⟦ a ⟧ A)) true
-  introspection = impI knows-ctx/z true-ctx/z 
+  introspection = ⊃I knows-ctx/z true-ctx/z 
     (⟦⟧E knows-ctx/z (true-ctx/s true-ctx/z) 
       (hyp knows-ctx/z (true-ctx/s true-ctx/z) (here refl)) 
       (⟦⟧I (knows-ctx/s knows-ctx/z) (true-ctx/s true-ctx/z) (k-ctx/s-keep k-ctx/z) 

@@ -144,11 +144,11 @@ module EpistemicS4
   -- The natural deduction rules for epistemic S4.
   data _⊢_ : (Context × Context) → TypingStatement → Set where
     {- Hypothesis: If a proposition is in the true context, it can be derived -}
-    hyp : ∀ {Γ Δ A x}
+    hyp : ∀ {Γ Δ A x E}
       → KnowsContext Γ → TrueContext Δ
       → ((var x) ∶ A true) ∈ Δ
       -------------------------------
-      → (Γ , Δ) ⊢ (var x) ∶ A true
+      → (Γ , Δ) ⊢ E ∶ A true
 
     {- 
       Hypothesis from knowledge: If we know something is true, then we can hypothesize
@@ -159,13 +159,6 @@ module EpistemicS4
       → ((var x) ∶ (a knows A)) ∈ Γ
       -------------------------------
       → (Γ , Δ) ⊢ (var x) ∶ A true
-
-    {- Knows : Copies a judgment about knowledge as true judgment -}
-    knows : ∀ {Γ Δ A C a x y E}
-      → KnowsContext Γ → TrueContext Δ
-      → ((var x) ∶ (a knows A)) ∈ Γ → (Γ , (var y) ∶ A true ∷ Δ) ⊢ E ∶ C true
-      -------------------------------
-      → (Γ , Δ) ⊢ E ∶ C true
 
     {- Implication -}
     -- Implication Introduction

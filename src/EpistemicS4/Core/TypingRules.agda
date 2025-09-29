@@ -1,46 +1,20 @@
-{-
-  EpistemicS4.agda
-
-  An implementation of the Epistemic S4 modal logic natural deduction system in Agda.
--}
-open import Relation.Nullary.Decidable
+{- Typing rules for the epistemic S4 lambda calculus -}
+open import Data.List
+open import Data.List.Relation.Unary.Any
+open import Data.List.Membership.Propositional
 open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary.Decidable
+open import Relation.Nullary
+open import Data.Product
 
-module EpistemicS4 
-  (Agent : Set) 
+module EpistemicS4.Core.TypingRules 
   (PropAtom : Set) 
+  (Agent : Set) 
   (decEqAgent : (a b : Agent) → Dec (a ≡ b))
   where
   
-  open import Data.String
-  open import Data.List
-  open import Data.List.Membership.Propositional
-  open import Data.List.Relation.Unary.Any
-  open import Data.Product
-  open import Relation.Nullary
-
-  -- These are the propositions in epistemic S4.
-  data Proposition : Set where
-    {- Atomic propositions -}
-    atom : PropAtom → Proposition
-    {- Logical connectives -}
-    -- Implication
-    _⊃_ : Proposition → Proposition → Proposition
-    {- The epistemic modal operator -}
-    ⟦_⟧ : Agent → Proposition → Proposition
-
-  
-  postulate
-    alice bob charlie : Agent
-    exPropAtom1 exPropAtom2 : PropAtom
-
-  private
-    -- Some example propositions
-    exampleProp1 : Proposition
-    exampleProp1 = atom exPropAtom1 ⊃ ⟦ alice ⟧ (atom exPropAtom2)
-
-    exampleProp2 : Proposition
-    exampleProp2 = ⟦ bob ⟧ (atom exPropAtom1)
+  open import EpistemicS4.Core.Terms Agent
+  open import EpistemicS4.Core.Propositions Agent PropAtom
 
   {- Propositions are paired with qualifiers to form judgments -}
   infixr 100 _true
@@ -52,39 +26,12 @@ module EpistemicS4
     {- A judgment can be a proposition known by an agent -}
     _knows_ : Agent → Proposition → Judgment
 
-  private
-    -- Some example judgments
-    exampleJudgment1 : Judgment
-    exampleJudgment1 = alice knows (atom exPropAtom1)
-
-    exampleJudgment2 : Judgment
-    exampleJudgment2 = (atom exPropAtom2) true
-
-  {- Now we'll want to define terms that will be typed according with these propositons -}
-  data Term : Set where
-    {- Variables -}
-    var : String → Term
-    {- Implication -}
-    ƛ_⇒_ : String → Term → Term
-    _∙_ : Term → Term → Term
-    {- Epistemic Modal Operator -}
-    box : Agent → Term → Term
-    let-box_∣_≐_⇒_ : Agent → String → Term → Term → Term
-
-  -- Now, a pairing of terms and judgments to form typing statements.
+ -- Now, a pairing of terms and judgments to form typing statements.
   infix 50 _∶_
   data TypingStatement : Set where
     _∶_ : Term → Judgment → TypingStatement
 
-  private 
-    -- Example typing statements - These are not necessarily derivable.
-    exampleTyping1 : TypingStatement
-    exampleTyping1 = (var "x") ∶ (atom exPropAtom1) true
-
-    exampleTyping2 : TypingStatement
-    exampleTyping2 = (box alice (var "y")) ∶ ⟦ alice ⟧ (atom exPropAtom1) true
-
-  -- Contexts in epistemic S4 are just lists of propositions.
+   -- Contexts in epistemic S4 are just lists of typing statements.
   Context : Set
   Context = List TypingStatement
 
@@ -120,6 +67,7 @@ module EpistemicS4
       ------------------------------
       → KnowsRestricted (e ∶ (b knows A) ∷ Γ) a Γ'
 
+  {- Some properties of the KnowsRestricted operation -}
   -- Generating knows-restricted contexts from a given context.
   restrictKnowsContext : ∀ {Γ a} → KnowsContext Γ → Σ (Context) (λ Γ|k → KnowsRestricted Γ a Γ|k)
   restrictKnowsContext knows-ctx/z = ([] , k-ctx/z)
@@ -189,7 +137,7 @@ module EpistemicS4
       → KnowsContext Γ → TrueContext Δ
       → (Γ , Δ) ⊢ E1 ∶ ⟦ a ⟧ A true → (((var x) ∶ (_knows_ a A)) ∷ Γ , Δ) ⊢ E2 ∶ C true
       -------------------------------
-      → (Γ , Δ) ⊢ (let-box a ∣ x ≐ E1 ⇒ E2) ∶ C true 
+      → (Γ , Δ) ⊢ (letbox a ∣ x ≐ E1 ⇒ E2) ∶ C true 
 
   {- 
     Axiomatic characterization of epistemic S4.
@@ -209,7 +157,7 @@ module EpistemicS4
 
   -- Distribution of knowledge over implication
   distribution : ∀ {A B a x y u w}
-    → ([] , []) ⊢ (ƛ x ⇒ (ƛ y ⇒ (let-box a ∣ u ≐ (var x) ⇒ (let-box a ∣ w ≐ (var y) ⇒ box a ((var u) ∙ (var w)))))) ∶ ((⟦ a ⟧ (A ⊃ B)) ⊃ (⟦ a ⟧ A ⊃ ⟦ a ⟧ B)) true
+    → ([] , []) ⊢ (ƛ x ⇒ (ƛ y ⇒ (letbox a ∣ u ≐ (var x) ⇒ (letbox a ∣ w ≐ (var y) ⇒ box a ((var u) ∙ (var w)))))) ∶ ((⟦ a ⟧ (A ⊃ B)) ⊃ (⟦ a ⟧ A ⊃ ⟦ a ⟧ B)) true
   distribution = 
     ⊃I knows-ctx/z true-ctx/z 
       (⊃I knows-ctx/z (true-ctx/s true-ctx/z) 
@@ -224,14 +172,14 @@ module EpistemicS4
 
   -- Known facts are true
   knownFactsAreTrue : ∀ {A a x u}
-    → ([] , []) ⊢ (ƛ x ⇒ (let-box a ∣ u ≐ var x ⇒ var u)) ∶ ((⟦ a ⟧ A) ⊃ A) true
+    → ([] , []) ⊢ (ƛ x ⇒ (letbox a ∣ u ≐ var x ⇒ var u)) ∶ ((⟦ a ⟧ A) ⊃ A) true
   knownFactsAreTrue = ⊃I knows-ctx/z true-ctx/z 
     (⟦⟧E knows-ctx/z (true-ctx/s true-ctx/z) (hyp knows-ctx/z (true-ctx/s true-ctx/z) (here refl)) 
       (hyp* (knows-ctx/s knows-ctx/z) (true-ctx/s true-ctx/z) (here refl)))
 
   -- Positive introspection
   introspection : ∀ {A a x u}
-    → ([] , []) ⊢ (ƛ x ⇒ (let-box a ∣ u ≐ (var x) ⇒ (box a (box a (var u))))) ∶ ((⟦ a ⟧ A) ⊃ ⟦ a ⟧ (⟦ a ⟧ A)) true
+    → ([] , []) ⊢ (ƛ x ⇒ (letbox a ∣ u ≐ (var x) ⇒ (box a (box a (var u))))) ∶ ((⟦ a ⟧ A) ⊃ ⟦ a ⟧ (⟦ a ⟧ A)) true
   introspection = ⊃I knows-ctx/z true-ctx/z 
     (⟦⟧E knows-ctx/z (true-ctx/s true-ctx/z) 
       (hyp knows-ctx/z (true-ctx/s true-ctx/z) (here refl)) 
